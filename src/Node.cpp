@@ -19,28 +19,18 @@
 
 #include "executor/Node.hpp"
 
-#include <chrono>
-
 namespace executor
 {
 
-uint32_t microseconds()
+MicroSeconds convertFrequencyToPeriod_InUS(float const frequency)
 {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(currentTime.time_since_epoch()).count();
+    auto const period_InSecond = static_cast<float>(1 / frequency);
+    auto const period_InUS = static_cast<uint32_t>(period_InSecond * 1000000);
 
-    return microseconds;
+    return MicroSeconds(period_InUS);
 }
 
-uint32_t convertFrequencyToPeriod_InUS(float const frequency)
-{
-    auto period_InSecond = static_cast<float>(1 / frequency);
-    auto period_InUS = static_cast<uint32_t>(period_InSecond * 1000000);
-
-    return period_InUS;
-}
-
-Node::Node(float const frequency) : m_updatePeriod_InUS(convertFrequencyToPeriod_InUS(frequency)), m_lastSpinTime_InUS(0) {}
+Node::Node(float const frequency) : m_lastSpinTime(), m_updatePeriod_InUS(convertFrequencyToPeriod_InUS(frequency)) {}
 
 void Node::setFrequency(float const frequency)
 {
@@ -49,14 +39,16 @@ void Node::setFrequency(float const frequency)
 
 void Node::spinOnce()
 {
-    auto currentTime_InUS = microseconds();
-    auto diffTime_InUS = (currentTime_InUS - m_lastSpinTime_InUS);
-    if (diffTime_InUS >= m_updatePeriod_InUS)
+    auto const currentTime = std::chrono::system_clock::now();
+    auto const diffTime_InUS = std::chrono::duration_cast<MicroSeconds>(currentTime - m_lastSpinTime);
+    if (diffTime_InUS < m_updatePeriod_InUS)
     {
-        m_lastSpinTime_InUS = currentTime_InUS;
-
-        process();
+        return;
     }
+
+    m_lastSpinTime = currentTime;
+
+    process();
 }
 
 } // namespace executor
