@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 
 /**
@@ -28,6 +29,9 @@ namespace executor
 {
 
 class Executor;
+
+using MicroSeconds = std::chrono::microseconds;
+using TimePoint = std::chrono::system_clock::time_point;
 
 /**
  * @interface Node
@@ -64,8 +68,8 @@ private:
     virtual void process() = 0;
 
 private:
-    uint32_t m_updatePeriod_InUS;
-    uint32_t m_lastSpinTime_InUS;
+    TimePoint m_lastSpinTime;
+    MicroSeconds m_updatePeriod_InUS;
 };
 
 } // namespace executor
