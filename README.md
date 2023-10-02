@@ -3,5 +3,5 @@
 ## Install
 
 ```
-git submodule add https://github.com/jadjer/esp-executor.git components/executor
+git submodule add https://github.com/jadjer/esp32-executor.git components/esp32-executor
 ```
