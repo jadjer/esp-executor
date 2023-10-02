@@ -21,7 +21,6 @@
 
 #include <list>
 #include <mutex>
-#include <thread>
 
 #include "executor/Node.hpp"
 
@@ -71,7 +70,6 @@ private:
     bool m_enable;
     Nodes m_nodes;
     std::mutex m_mutex;
-    std::thread m_thread;
 };
 
 } // namespace executor
