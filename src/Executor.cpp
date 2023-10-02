@@ -22,46 +22,37 @@
 namespace executor
 {
 
-Executor::Executor() : m_nodes(), m_isEnabled(true) {}
+Executor::Executor() : m_enable(true), m_nodes() {}
 
 Executor::~Executor()
 {
-    m_isEnabled = false;
+    m_enable = false;
 }
 
 void Executor::addNode(NodePtr const& node)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard lockGuard(m_mutex);
 
     m_nodes.push_back(node);
-
-    lock.unlock();
-    m_conditionVariable.notify_all();
 }
 
 void Executor::removeNode(NodePtr const& node)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard lockGuard(m_mutex);
 
     m_nodes.remove(node);
-
-    lock.unlock();
-    m_conditionVariable.notify_all();
 }
 
 void Executor::spin()
 {
-    while (m_isEnabled)
+    while (m_enable)
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_conditionVariable.wait(lock);
+        std::lock_guard lockGuard(m_mutex);
 
         for (auto const& node : m_nodes)
         {
             node->spinOnce();
         }
-
-        lock.unlock();
     }
 }
 

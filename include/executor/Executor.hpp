@@ -20,10 +20,7 @@
 #pragma once
 
 #include <list>
-#include <thread>
 #include <mutex>
-#include <atomic>
-#include <condition_variable>
 
 #include "executor/Node.hpp"
 
@@ -70,11 +67,9 @@ public:
     void spin();
 
 private:
+    bool m_enable;
     Nodes m_nodes;
     std::mutex m_mutex;
-    std::thread m_thread;
-    std::atomic<bool> m_isEnabled;
-    std::condition_variable m_conditionVariable;
 };
 
 } // namespace executor
