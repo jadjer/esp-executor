@@ -1,4 +1,4 @@
-// Copyright 2023 Pavel Suprunov
+// Copyright 2024 Pavel Suprunov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,41 +19,28 @@
 
 #include "executor/Executor.hpp"
 
-namespace executor
-{
+namespace executor {
 
 Executor::Executor() : m_enable(true), m_nodes() {}
 
-Executor::~Executor()
-{
-    m_enable = false;
+Executor::~Executor() {
+  m_enable = false;
 }
 
-void Executor::addNode(NodePtr const& node)
-{
-    std::lock_guard lockGuard(m_mutex);
-
-    m_nodes.push_back(node);
+void Executor::addNode(NodePtr const &node) {
+  m_nodes.push_back(node);
 }
 
-void Executor::removeNode(NodePtr const& node)
-{
-    std::lock_guard lockGuard(m_mutex);
-
-    m_nodes.remove(node);
+void Executor::removeNode(NodePtr const &node) {
+  m_nodes.remove(node);
 }
 
-void Executor::spin()
-{
-    while (m_enable)
-    {
-        std::lock_guard lockGuard(m_mutex);
-
-        for (auto const& node : m_nodes)
-        {
-            node->spinOnce();
-        }
+void Executor::spin() {
+  while (m_enable) {
+    for (auto const &node : m_nodes) {
+      node->spinOnce();
     }
+  }
 }
 
-} // namespace executor
+}

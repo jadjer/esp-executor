@@ -1,4 +1,4 @@
-// Copyright 2023 Pavel Suprunov
+// Copyright 2024 Pavel Suprunov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,56 +20,52 @@
 #pragma once
 
 #include <list>
-#include <mutex>
 
 #include "executor/Node.hpp"
 
 /**
  * @namespace Executor
  */
-namespace executor
-{
+namespace executor {
 
 using Nodes = std::list<NodePtr>;
 
 /**
  * @class Executor
  */
-class Executor
-{
+class Executor {
 public:
-    /**
-     * Default constructor
-     */
-    Executor();
+  /**
+   * Default constructor
+   */
+  Executor();
 
-    /**
-     * Default destructor
-     */
-    ~Executor();
-
-public:
-    /**
-     * Node add to list
-     * @param node Node ptr
-     */
-    void addNode(NodePtr const& node);
-    /**
-     * Node remove from list
-     * @param node Node ptr
-     */
-    void removeNode(NodePtr const& node);
+  /**
+   * Default destructor
+   */
+  ~Executor();
 
 public:
-    /**
-     * Loop executor
-     */
-    void spin();
+  /**
+   * Node add to list
+   * @param node Node ptr
+   */
+  void addNode(NodePtr const &node);
+  /**
+   * Node remove from list
+   * @param node Node ptr
+   */
+  void removeNode(NodePtr const &node);
+
+public:
+  /**
+   * Loop executor
+   */
+  void spin();
 
 private:
-    bool m_enable;
-    Nodes m_nodes;
-    std::mutex m_mutex;
+  bool m_enable;
+  Nodes m_nodes;
 };
 
 } // namespace executor

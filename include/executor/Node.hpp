@@ -19,57 +19,51 @@
 
 #pragma once
 
-#include <chrono>
 #include <cstdint>
 
 /**
  * @namespace Executor
  */
-namespace executor
-{
+namespace executor {
 
 class Executor;
-
-using MicroSeconds = std::chrono::microseconds;
-using TimePoint = std::chrono::system_clock::time_point;
 
 /**
  * @interface Node
  * Abstract class for node object
  */
-class Node
-{
-    friend Executor;
+class Node {
+  friend Executor;
 
 public:
-    explicit Node(float frequency = 100);
-    /**
-     * Virtual default destructor
-     */
-    virtual ~Node() = default;
+  explicit Node(float frequency = 100);
+  /**
+   * Virtual default destructor
+   */
+  virtual ~Node() = default;
 
 public:
-    /**
-     * Set frequency for update node
-     * @param frequency
-     */
-    void setFrequency(float frequency);
+  /**
+   * Set frequency for update node
+   * @param frequency
+   */
+  void setFrequency(float frequency);
 
 protected:
-    /**
-     * Service's method for call process() with settled frequency
-     */
-    void spinOnce();
+  /**
+   * Service's method for call process() with settled frequency
+   */
+  void spinOnce();
 
 private:
-    /**
-     * Business data implementation
-     */
-    virtual void process() = 0;
+  /**
+   * Business data implementation
+   */
+  virtual void process() = 0;
 
 private:
-    TimePoint m_lastSpinTime;
-    MicroSeconds m_updatePeriod_InUS;
+  uint32_t m_lastSpinTime_InUS;
+  uint32_t m_updatePeriod_InUS;
 };
 
 } // namespace executor
