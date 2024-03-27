@@ -50,12 +50,20 @@ public:
    * Node add to list
    * @param node Node ptr
    */
-  void addNode(NodePtr const &node);
+  void addNode(NodePtr &&node);
+
+  /**
+   * Node add to list
+   * @param node Node ptr
+   * @param frequency Frequency
+   */
+  void addNode(NodePtr &&node, float frequencyInHz);
+
   /**
    * Node remove from list
    * @param node Node ptr
    */
-  void removeNode(NodePtr const &node);
+  void removeNode(NodePtr &&node);
 
 public:
   /**

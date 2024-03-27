@@ -27,11 +27,16 @@ Executor::~Executor() {
   m_enable = false;
 }
 
-void Executor::addNode(NodePtr const &node) {
-  m_nodes.push_back(node);
+void Executor::addNode(NodePtr &&node) {
+  m_nodes.push_back(std::move(node));
 }
 
-void Executor::removeNode(NodePtr const &node) {
+void Executor::addNode(NodePtr &&node, float const frequencyInHz) {
+  node->setFrequency(frequencyInHz);
+  addNode(std::move(node));
+}
+
+void Executor::removeNode(NodePtr &&node) {
   m_nodes.remove(node);
 }
 
