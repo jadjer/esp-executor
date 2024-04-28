@@ -1,7 +1,7 @@
-# esp-executor
+# esp32-executor
 
 ## Install
 
 ```
-git submodule add https://github.com/jadjer/esp32-executor.git components/esp32-executor
+git submodule add https://github.com/jadjer/esp32-executor.git components/executor
 ```
