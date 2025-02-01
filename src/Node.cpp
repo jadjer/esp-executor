@@ -1,4 +1,4 @@
-// Copyright 2023 Pavel Suprunov
+// Copyright 2025 Pavel Suprunov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,40 +13,38 @@
 // limitations under the License.
 //
 
-//
-// Created by jadjer on 25.09.23.
-//
-
 #include "executor/Node.hpp"
 
 #include <esp_timer.h>
 
 namespace executor {
 
-uint32_t convertFrequencyToPeriodInUS(float const frequency) {
+auto const MICROSECONDS_IN_SECOND = 1000000;
+
+std::uint32_t convertFrequencyToPeriodInUS(float const frequency) {
   auto const period_InSecond = 1 / frequency;
-  auto const period_InUS = static_cast<uint32_t>(period_InSecond * 1000000);
+  auto const period_InUS = static_cast<uint32_t>(period_InSecond * MICROSECONDS_IN_SECOND);
 
   return period_InUS;
 }
 
-Node::Node(float const frequency) : m_lastSpinTime_InUS(0), m_updatePeriod_InUS(convertFrequencyToPeriodInUS(frequency)) {}
+Node::Node(Frequency const frequency) : m_lastSpinTime_InUS(0),
+                                        m_updatePeriod_InUS(convertFrequencyToPeriodInUS(frequency)) {}
 
-void Node::setFrequency(float const frequency) {
+void Node::setFrequency(Frequency const frequency) {
   m_updatePeriod_InUS = convertFrequencyToPeriodInUS(frequency);
 }
 
 void Node::spinOnce() {
   auto const currentTime_InUS = esp_timer_get_time();
-
-  auto const diffTime_InUS = currentTime_InUS - m_lastSpinTime_InUS;
-  if (diffTime_InUS < m_updatePeriod_InUS) {
+  auto const timeDifference_InUS = currentTime_InUS - m_lastSpinTime_InUS;
+  if (timeDifference_InUS < m_updatePeriod_InUS) {
     return;
   }
 
-  process();
-
   m_lastSpinTime_InUS = currentTime_InUS;
+
+  process();
 }
 
-}
+}// namespace executor

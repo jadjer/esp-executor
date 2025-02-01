@@ -1,4 +1,4 @@
-// Copyright 2023 Pavel Suprunov
+// Copyright 2025 Pavel Suprunov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,6 @@
 // limitations under the License.
 //
 
-//
-// Created by jadjer on 15.08.23.
-//
-
 #pragma once
 
 #include <cstdint>
@@ -28,6 +24,8 @@ namespace executor {
 
 class Executor;
 
+using Frequency = float;
+
 /**
  * @interface Node
  * Abstract class for node object
@@ -36,7 +34,7 @@ class Node {
   friend Executor;
 
 public:
-  explicit Node(float frequency = 100);
+  explicit Node(Frequency frequency = 1000);
   /**
    * Virtual default destructor
    */
@@ -47,7 +45,7 @@ public:
    * Set frequency for update node
    * @param frequency
    */
-  void setFrequency(float frequency);
+  void setFrequency(Frequency frequency);
 
 protected:
   /**
@@ -62,8 +60,8 @@ private:
   virtual void process() = 0;
 
 private:
-  uint32_t m_lastSpinTime_InUS;
-  uint32_t m_updatePeriod_InUS;
+  std::uint32_t m_lastSpinTime_InUS;
+  std::uint32_t m_updatePeriod_InUS;
 };
 
 } // namespace executor

@@ -1,4 +1,4 @@
-// Copyright 2024 Pavel Suprunov
+// Copyright 2025 Pavel Suprunov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,15 +13,11 @@
 // limitations under the License.
 //
 
-//
-// Created by jadjer on 15.08.23.
-//
-
 #pragma once
 
+#include <esp_task_wdt.h>
+#include <executor/Node.hpp>
 #include <list>
-
-#include "executor/Node.hpp"
 
 /**
  * @namespace Executor
@@ -34,17 +30,6 @@ using Nodes = std::list<NodePtr>;
  * @class Executor
  */
 class Executor {
-public:
-  /**
-   * Default constructor
-   */
-  Executor();
-
-  /**
-   * Default destructor
-   */
-  ~Executor();
-
 public:
   /**
    * Node add to list
@@ -69,11 +54,18 @@ public:
   /**
    * Loop executor
    */
-  void spin();
+  [[noreturn]] void spin();
 
 private:
-  bool m_enable;
-  Nodes m_nodes;
+  /**
+   * Reset watchdog timer every 3 seconds
+   */
+  void watchdogTimerReset();
+
+private:
+  Nodes m_nodes = {};
+  std::uint32_t m_watchdogResetLastTime = 0;
+  esp_task_wdt_user_handle_t m_watchdogHandle = nullptr;
 };
 
-} // namespace executor
+}// namespace executor
