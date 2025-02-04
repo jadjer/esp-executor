@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <esp_task_wdt.h>
 #include <executor/Node.hpp>
 #include <list>
@@ -24,31 +25,33 @@
  */
 namespace executor {
 
-using Nodes = std::list<NodePtr>;
-
 /**
  * @class Executor
  */
 class Executor {
 public:
+  using Time = std::int64_t;
+  using Nodes = std::list<NodePtr>;
+
+public:
   /**
    * Node add to list
    * @param node Node ptr
    */
-  void addNode(NodePtr &&node);
+  void addNode(NodePtr node);
 
   /**
    * Node add to list
    * @param node Node ptr
    * @param frequency Frequency
    */
-  void addNode(NodePtr &&node, float frequencyInHz);
+  void addNode(NodePtr node, float frequencyInHz);
 
   /**
    * Node remove from list
    * @param node Node ptr
    */
-  void removeNode(NodePtr &&node);
+  void removeNode(NodePtr const &node);
 
 public:
   /**
@@ -63,8 +66,8 @@ private:
   void watchdogTimerReset();
 
 private:
-  Nodes m_nodes = {};
-  std::uint32_t m_watchdogResetLastTime = 0;
+  Executor::Nodes m_nodes = {};
+  Executor::Time m_watchdogResetLastTime = 0;
   esp_task_wdt_user_handle_t m_watchdogHandle = nullptr;
 };
 

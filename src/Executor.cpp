@@ -21,16 +21,16 @@ auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_IN_SECOND;
 
 namespace executor {
 
-void Executor::addNode(NodePtr &&node) {
+void Executor::addNode(NodePtr node) {
   m_nodes.push_back(std::move(node));
 }
 
-void Executor::addNode(NodePtr &&node, float const frequencyInHz) {
+void Executor::addNode(NodePtr node, float const frequencyInHz) {
   node->setFrequency(frequencyInHz);
   addNode(std::move(node));
 }
 
-void Executor::removeNode(NodePtr &&node) {
+void Executor::removeNode(NodePtr const &node) {
   m_nodes.remove(node);
 }
 
@@ -53,10 +53,13 @@ void Executor::removeNode(NodePtr &&node) {
 void Executor::watchdogTimerReset() {
   auto const currentTime = esp_timer_get_time();
   auto const timeDifference = currentTime - m_watchdogResetLastTime;
-  if (timeDifference >= WATCHDOG_TIMER_RESET_MICROSECONDS) {
-    ESP_ERROR_CHECK(esp_task_wdt_reset_user(m_watchdogHandle));
-    m_watchdogResetLastTime = timeDifference;
+  if (timeDifference < WATCHDOG_TIMER_RESET_MICROSECONDS) {
+    return;
   }
+
+  m_watchdogResetLastTime = timeDifference;
+
+  ESP_ERROR_CHECK(esp_task_wdt_reset_user(m_watchdogHandle));
 }
 
 }// namespace executor

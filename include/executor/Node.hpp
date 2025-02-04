@@ -24,17 +24,19 @@ namespace executor {
 
 class Executor;
 
-using Frequency = float;
-
 /**
  * @interface Node
  * Abstract class for node object
  */
 class Node {
+public:
   friend Executor;
 
+  using Time = std::int64_t;
+  using Frequency = float;
+
 public:
-  explicit Node(Frequency frequency = 1000);
+  explicit Node(Node::Frequency frequency = 1000);
   /**
    * Virtual default destructor
    */
@@ -45,7 +47,7 @@ public:
    * Set frequency for update node
    * @param frequency
    */
-  void setFrequency(Frequency frequency);
+  void setFrequency(Node::Frequency frequency);
 
 protected:
   /**
@@ -60,11 +62,11 @@ private:
   virtual void process() = 0;
 
 private:
-  std::uint32_t m_lastSpinTime_InUS;
-  std::uint32_t m_updatePeriod_InUS;
+  Time m_spinLastTime;
+  Time m_updatePeriod;
 };
 
-} // namespace executor
+}// namespace executor
 
 #include <memory>
 
