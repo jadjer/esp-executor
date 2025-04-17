@@ -19,6 +19,7 @@
 #include <esp_task_wdt.h>
 #include <executor/Node.hpp>
 #include <list>
+#include <memory>
 
 /**
  * @namespace Executor
@@ -31,44 +32,46 @@ namespace executor {
 class Executor {
 public:
   using Time = std::int64_t;
+  using NodePtr = std::unique_ptr<Node>;
   using Nodes = std::list<NodePtr>;
+  using WatchDogHandle = esp_task_wdt_user_handle_t;
 
 public:
   /**
    * Node add to list
    * @param node Node ptr
    */
-  void addNode(NodePtr node);
+  [[maybe_unused]] auto addNode(NodePtr node) -> void;
 
   /**
    * Node add to list
    * @param node Node ptr
    * @param frequency Frequency
    */
-  void addNode(NodePtr node, float frequencyInHz);
+  [[maybe_unused]] auto addNode(NodePtr node, Node::Frequency frequencyInHz) -> void;
 
   /**
    * Node remove from list
    * @param node Node ptr
    */
-  void removeNode(NodePtr const &node);
+  [[maybe_unused]] auto removeNode(NodePtr const &node) -> void;
 
 public:
   /**
    * Loop executor
    */
-  [[noreturn]] void spin();
+  [[noreturn]] auto spin() -> void;
 
 private:
   /**
    * Reset watchdog timer every 3 seconds
    */
-  void watchdogTimerReset();
+  auto watchdogTimerReset() -> void;
 
 private:
-  Executor::Nodes m_nodes = {};
-  Executor::Time m_watchdogResetLastTime = 0;
-  esp_task_wdt_user_handle_t m_watchdogHandle = nullptr;
+  Nodes m_nodes = {};
+  Time m_watchdogResetLastTime = 0;
+  WatchDogHandle m_watchdogHandle = nullptr;
 };
 
-}// namespace executor
+} // namespace executor

@@ -14,25 +14,30 @@
 //
 
 #include "executor/Executor.hpp"
-#include <esp_timer.h>
 
-auto const MICROSECONDS_IN_SECOND = 1000000;
-auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_IN_SECOND;
+#include <chrono>
+#include <esp_err.h>
+#include <esp_task_wdt.h>
+#include <esp_timer.h>
+#include <thread>
+#include <utility>
+
+#include "executor/Node.hpp"
 
 namespace executor {
 
-void Executor::addNode(NodePtr node) {
-  m_nodes.push_back(std::move(node));
-}
+auto const MICROSECONDS_PER_SECOND = 1000000;
+auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_PER_SECOND;
 
-void Executor::addNode(NodePtr node, float const frequencyInHz) {
+void Executor::addNode(Executor::NodePtr node) { m_nodes.push_back(std::move(node)); }
+
+void Executor::addNode(Executor::NodePtr node, Node::Frequency const frequencyInHz) {
   node->setFrequency(frequencyInHz);
+
   addNode(std::move(node));
 }
 
-void Executor::removeNode(NodePtr const &node) {
-  m_nodes.remove(node);
-}
+[[maybe_unused]] void Executor::removeNode(NodePtr const &node) { m_nodes.remove(node); }
 
 [[noreturn]] void Executor::spin() {
   ESP_ERROR_CHECK(esp_task_wdt_add_user("executor_spin", &m_watchdogHandle));
@@ -44,7 +49,7 @@ void Executor::removeNode(NodePtr const &node) {
       node->spinOnce();
     }
 
-    vTaskDelay(1);
+    std::this_thread::sleep_for(std::chrono::microseconds(1));
   }
 
   ESP_ERROR_CHECK(esp_task_wdt_delete_user(m_watchdogHandle));
@@ -62,4 +67,4 @@ void Executor::watchdogTimerReset() {
   ESP_ERROR_CHECK(esp_task_wdt_reset_user(m_watchdogHandle));
 }
 
-}// namespace executor
+} // namespace executor

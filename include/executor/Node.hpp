@@ -32,14 +32,12 @@ class Node {
 public:
   friend Executor;
 
+public:
   using Time = std::int64_t;
   using Frequency = float;
 
 public:
-  explicit Node(Node::Frequency frequency = 1000);
-  /**
-   * Virtual default destructor
-   */
+  Node(Frequency frequency = 1000);
   virtual ~Node() = default;
 
 public:
@@ -47,27 +45,19 @@ public:
    * Set frequency for update node
    * @param frequency
    */
-  void setFrequency(Node::Frequency frequency);
+  auto setFrequency(Node::Frequency frequency) -> void;
 
 protected:
-  /**
-   * Service's method for call process() with settled frequency
-   */
-  void spinOnce();
+  /** Service's method for call process() with settled frequency */
+  auto spinOnce() -> void;
 
 private:
-  /**
-   * Business data implementation
-   */
-  virtual void process() = 0;
+  /** Business data implementation */
+  virtual auto process() -> void = 0;
 
 private:
   Time m_spinLastTime;
   Time m_updatePeriod;
 };
 
-}// namespace executor
-
-#include <memory>
-
-using NodePtr = std::shared_ptr<executor::Node>;
+} // namespace executor
