@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <esp_task_wdt.h>
 #include <executor/Node.hpp>
+#include <expected>
 #include <list>
 #include <memory>
 
@@ -28,50 +29,33 @@ namespace executor {
 
 /**
  * @class Executor
+ * Вызывает метод process у Node с заданной частотой
  */
 class Executor {
 public:
+  using NodePtr = std::shared_ptr<Node>;
+
+private:
   using Time = std::int64_t;
-  using NodePtr = std::unique_ptr<Node>;
   using Nodes = std::list<NodePtr>;
   using WatchDogHandle = esp_task_wdt_user_handle_t;
 
 public:
-  /**
-   * Node add to list
-   * @param node Node ptr
-   */
   [[maybe_unused]] auto addNode(NodePtr node) -> void;
-
-  /**
-   * Node add to list
-   * @param node Node ptr
-   * @param frequency Frequency
-   */
-  [[maybe_unused]] auto addNode(NodePtr node, Node::Frequency frequencyInHz) -> void;
-
-  /**
-   * Node remove from list
-   * @param node Node ptr
-   */
+  [[maybe_unused]] auto addNode(NodePtr node, Node::Frequency processFrequency) -> void;
   [[maybe_unused]] auto removeNode(NodePtr const &node) -> void;
 
 public:
-  /**
-   * Loop executor
-   */
-  [[noreturn]] auto spin() -> void;
+  auto spin() -> void;
 
 private:
-  /**
-   * Reset watchdog timer every 3 seconds
-   */
-  auto watchdogTimerReset() -> void;
+  auto watchdogTimerInit() -> bool;
+  auto watchdogTimerReset() -> bool;
 
 private:
-  Nodes m_nodes = {};
-  Time m_watchdogResetLastTime = 0;
-  WatchDogHandle m_watchdogHandle = nullptr;
+  Nodes nodes{};
+  Time watchdogResetLastTime{0};
+  WatchDogHandle watchdogHandle{nullptr};
 };
 
 } // namespace executor

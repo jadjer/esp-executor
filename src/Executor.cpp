@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <esp_err.h>
+#include <esp_log.h>
 #include <esp_task_wdt.h>
 #include <esp_timer.h>
 #include <thread>
@@ -26,45 +27,71 @@
 
 namespace executor {
 
+namespace {
+
+auto const TAG = "Executor";
+
 auto const MICROSECONDS_PER_SECOND = 1000000;
 auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_PER_SECOND;
 
-void Executor::addNode(Executor::NodePtr node) { m_nodes.push_back(std::move(node)); }
+using Error = esp_err_t;
 
-void Executor::addNode(Executor::NodePtr node, Node::Frequency const frequencyInHz) {
-  node->setFrequency(frequencyInHz);
+} // namespace
+
+[[maybe_unused]] auto Executor::addNode(Executor::NodePtr node) -> void { nodes.push_back(std::move(node)); }
+
+[[maybe_unused]] auto Executor::addNode(Executor::NodePtr node, Node::Frequency const processFrequency) -> void {
+  node->setFrequency(processFrequency);
 
   addNode(std::move(node));
 }
 
-[[maybe_unused]] void Executor::removeNode(NodePtr const &node) { m_nodes.remove(node); }
+[[maybe_unused]] auto Executor::removeNode(Executor::NodePtr const &node) -> void { nodes.remove(node); }
 
-[[noreturn]] void Executor::spin() {
-  ESP_ERROR_CHECK(esp_task_wdt_add_user("executor_spin", &m_watchdogHandle));
+auto Executor::spin() -> void {
+  if (not watchdogTimerInit()) {
+    return;
+  }
 
   while (true) {
-    watchdogTimerReset();
+    if (not watchdogTimerReset()) {
+      return;
+    }
 
-    for (auto const &node : m_nodes) {
+    for (auto const &node : nodes) {
       node->spinOnce();
     }
 
     std::this_thread::sleep_for(std::chrono::microseconds(1));
   }
-
-  ESP_ERROR_CHECK(esp_task_wdt_delete_user(m_watchdogHandle));
 }
 
-void Executor::watchdogTimerReset() {
-  auto const currentTime = esp_timer_get_time();
-  auto const timeDifference = currentTime - m_watchdogResetLastTime;
-  if (timeDifference < WATCHDOG_TIMER_RESET_MICROSECONDS) {
-    return;
+auto Executor::watchdogTimerInit() -> bool {
+  Error const result = esp_task_wdt_add_user("executor_spin", &watchdogHandle);
+  if (result != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to subscribe user");
+    return false;
   }
 
-  m_watchdogResetLastTime = timeDifference;
+  return true;
+}
 
-  ESP_ERROR_CHECK(esp_task_wdt_reset_user(m_watchdogHandle));
+auto Executor::watchdogTimerReset() -> bool {
+  auto const currentTime = esp_timer_get_time();
+  auto const timeDifference = currentTime - watchdogResetLastTime;
+  if (timeDifference < WATCHDOG_TIMER_RESET_MICROSECONDS) {
+    return true;
+  }
+
+  watchdogResetLastTime = timeDifference;
+
+  Error const result = esp_task_wdt_reset_user(watchdogHandle);
+  if (result != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to reset");
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace executor

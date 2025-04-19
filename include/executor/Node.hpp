@@ -22,22 +22,22 @@
  */
 namespace executor {
 
-class Executor;
-
 /**
  * @interface Node
  * Abstract class for node object
  */
 class Node {
 public:
-  friend Executor;
+  friend class Executor;
 
 public:
   using Time = std::int64_t;
   using Frequency = float;
 
 public:
-  Node(Frequency frequency = 1000);
+  Node();
+  Node(Frequency frequency);
+
   virtual ~Node() = default;
 
 public:
@@ -45,9 +45,9 @@ public:
    * Set frequency for update node
    * @param frequency
    */
-  auto setFrequency(Node::Frequency frequency) -> void;
+  [[maybe_unused]] auto setFrequency(Frequency frequency) -> void;
 
-protected:
+private:
   /** Service's method for call process() with settled frequency */
   auto spinOnce() -> void;
 
@@ -56,8 +56,8 @@ private:
   virtual auto process() -> void = 0;
 
 private:
-  Time m_spinLastTime;
-  Time m_updatePeriod;
+  Time spinLastTime{0};
+  Time updatePeriod{0};
 };
 
 } // namespace executor
