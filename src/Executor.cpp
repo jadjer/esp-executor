@@ -30,44 +30,74 @@ namespace executor {
 namespace {
 
 auto const TAG = "Executor";
-
 auto const MICROSECONDS_PER_SECOND = 1000000;
 auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_PER_SECOND;
 
-using Error = esp_err_t;
+using Time = std::int64_t;
+using Result = esp_err_t;
 
 } // namespace
 
-[[maybe_unused]] auto Executor::addNode(Executor::NodePtr node) -> void { nodes.push_back(std::move(node)); }
+[[maybe_unused]] auto Executor::addNode(Node::Pointer node) -> void { m_nodes.push_back(std::move(node)); }
 
-[[maybe_unused]] auto Executor::addNode(Executor::NodePtr node, Node::Frequency const processFrequency) -> void {
+[[maybe_unused]] auto Executor::addNode(Node::Pointer node, Node::Frequency const processFrequency) -> void {
   node->setFrequency(processFrequency);
 
   addNode(std::move(node));
 }
 
-[[maybe_unused]] auto Executor::removeNode(Executor::NodePtr const &node) -> void { nodes.remove(node); }
+[[maybe_unused]] auto Executor::removeNode(Node::Pointer const &node) -> void { m_nodes.remove(node); }
 
 auto Executor::spin() -> void {
-  if (not watchdogTimerInit()) {
+  m_enable = true;
+
+  process();
+}
+
+auto Executor::start() -> void {
+  m_enable = true;
+
+  m_thread = Thread(&Executor::process, this);
+  m_thread.detach();
+
+  ESP_LOGI(TAG, "Executed on a separate thread");
+}
+
+auto Executor::stop() -> void {
+  m_enable = false;
+
+  if (m_thread.joinable()) {
+    m_thread.join();
+  }
+}
+
+auto Executor::process() -> void {
+  if (m_nodes.empty()) {
+    ESP_LOGW(TAG, "There are no nodes");
     return;
   }
 
-  while (true) {
+  if (not watchdogTimerInit()) {
+    ESP_LOGE(TAG, "Watchdog timer init failed");
+    return;
+  }
+
+  while (m_enable) {
     if (not watchdogTimerReset()) {
+      ESP_LOGE(TAG, "Watchdog timer reset failed");
       return;
     }
 
-    for (auto const &node : nodes) {
+    for (auto const &node : m_nodes) {
       node->spinOnce();
     }
 
-    std::this_thread::sleep_for(std::chrono::microseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
 auto Executor::watchdogTimerInit() -> bool {
-  Error const result = esp_task_wdt_add_user("executor_spin", &watchdogHandle);
+  Result const result = esp_task_wdt_add_user("executor_spin", &m_watchdogHandle);
   if (result != ESP_OK) {
     ESP_LOGE(TAG, "Failed to subscribe user");
     return false;
@@ -77,15 +107,16 @@ auto Executor::watchdogTimerInit() -> bool {
 }
 
 auto Executor::watchdogTimerReset() -> bool {
-  auto const currentTime = esp_timer_get_time();
-  auto const timeDifference = currentTime - watchdogResetLastTime;
+  Time const currentTime = esp_timer_get_time();
+  Time const timeDifference = currentTime - m_watchdogResetLastTime;
+
   if (timeDifference < WATCHDOG_TIMER_RESET_MICROSECONDS) {
     return true;
   }
 
-  watchdogResetLastTime = timeDifference;
+  m_watchdogResetLastTime = currentTime;
 
-  Error const result = esp_task_wdt_reset_user(watchdogHandle);
+  Result const result = esp_task_wdt_reset_user(m_watchdogHandle);
   if (result != ESP_OK) {
     ESP_LOGE(TAG, "Failed to reset");
     return false;

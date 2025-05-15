@@ -15,12 +15,14 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <esp_task_wdt.h>
 #include <executor/Node.hpp>
 #include <expected>
 #include <list>
 #include <memory>
+#include <thread>
 
 /**
  * @namespace Executor
@@ -32,30 +34,36 @@ namespace executor {
  * Вызывает метод process у Node с заданной частотой
  */
 class Executor {
-public:
-  using NodePtr = std::shared_ptr<Node>;
-
 private:
+  using Flag = std::atomic_bool;
   using Time = std::int64_t;
-  using Nodes = std::list<NodePtr>;
+  using Nodes = std::list<Node::Pointer>;
+  using Thread = std::thread;
   using WatchDogHandle = esp_task_wdt_user_handle_t;
 
 public:
-  [[maybe_unused]] auto addNode(NodePtr node) -> void;
-  [[maybe_unused]] auto addNode(NodePtr node, Node::Frequency processFrequency) -> void;
-  [[maybe_unused]] auto removeNode(NodePtr const &node) -> void;
+  [[maybe_unused]] auto addNode(Node::Pointer node) -> void;
+  [[maybe_unused]] auto addNode(Node::Pointer node, Node::Frequency processFrequency) -> void;
+  [[maybe_unused]] auto removeNode(Node::Pointer const &node) -> void;
 
 public:
   auto spin() -> void;
 
+public:
+  auto start() -> void;
+  auto stop() -> void;
+
 private:
+  auto process() -> void;
   auto watchdogTimerInit() -> bool;
   auto watchdogTimerReset() -> bool;
 
 private:
-  Nodes nodes{};
-  Time watchdogResetLastTime{0};
-  WatchDogHandle watchdogHandle{nullptr};
+  Flag m_enable{false};
+  Nodes m_nodes{};
+  Thread m_thread{};
+  Time m_watchdogResetLastTime{0};
+  WatchDogHandle m_watchdogHandle{nullptr};
 };
 
 } // namespace executor

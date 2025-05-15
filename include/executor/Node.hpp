@@ -16,6 +16,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 /**
  * @namespace Executor
@@ -31,14 +32,18 @@ public:
   friend class Executor;
 
 public:
-  using Time = std::int64_t;
+  using Period = std::int64_t;
+  using Pointer = std::shared_ptr<Node>;
   using Frequency = float;
 
-public:
-  Node();
-  Node(Frequency frequency);
+private:
+  using Time = std::int64_t;
 
-  virtual ~Node() = default;
+public:
+  Node() noexcept;
+  explicit Node(Frequency frequency) noexcept;
+
+  virtual ~Node() noexcept = default;
 
 public:
   /**
@@ -56,8 +61,8 @@ private:
   virtual auto process() -> void = 0;
 
 private:
-  Time spinLastTime{0};
-  Time updatePeriod{0};
+  Time m_spinLastTime{0};
+  Period m_updatePeriod{0};
 };
 
 } // namespace executor
