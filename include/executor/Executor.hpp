@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <esp_task_wdt.h>
 #include <executor/Node.hpp>
-#include <expected>
 #include <list>
 #include <memory>
 #include <thread>
