@@ -38,7 +38,9 @@ using Result = esp_err_t;
 
 } // namespace
 
-[[maybe_unused]] auto Executor::addNode(Node::Pointer node) -> void { m_nodes.push_back(std::move(node)); }
+[[maybe_unused]] auto Executor::addNode(Node::Pointer node) -> void {
+  m_nodes.push_back(std::move(node));
+}
 
 [[maybe_unused]] auto Executor::addNode(Node::Pointer node, Node::Frequency const processFrequency) -> void {
   node->setFrequency(processFrequency);
@@ -46,7 +48,9 @@ using Result = esp_err_t;
   addNode(std::move(node));
 }
 
-[[maybe_unused]] auto Executor::removeNode(Node::Pointer const &node) -> void { m_nodes.remove(node); }
+[[maybe_unused]] auto Executor::removeNode(Node::Pointer const& node) -> void {
+  m_nodes.remove(node);
+}
 
 auto Executor::spin() -> void {
   m_enable = true;
@@ -88,7 +92,7 @@ auto Executor::process() -> void {
       return;
     }
 
-    for (auto const &node : m_nodes) {
+    for (auto const& node : m_nodes) {
       node->spinOnce();
     }
 

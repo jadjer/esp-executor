@@ -24,24 +24,18 @@ namespace {
 auto const DEFAULT_FREQUENCY_HZ = 1000;
 auto const MICROSECONDS_PER_SECOND = 1000000;
 
-auto convertFrequencyToPeriod(Node::Frequency const frequency) -> Node::Period {
-  auto const periodInSecond = 1 / frequency;
-  auto const periodInUS = static_cast<Node::Period>(periodInSecond * MICROSECONDS_PER_SECOND);
-
-  return periodInUS;
-}
-
 } // namespace
 
-Node::Node() noexcept : Node(DEFAULT_FREQUENCY_HZ) {}
+Node::Node(Frequency const frequency) noexcept : m_updatePeriod{convertFrequencyToPeriod(frequency)} {
+}
 
-Node::Node(Node::Frequency const frequency) noexcept : m_updatePeriod{convertFrequencyToPeriod(frequency)} {}
-
-[[maybe_unused]] auto Node::setFrequency(Node::Frequency const frequency) -> void { m_updatePeriod = convertFrequencyToPeriod(frequency); }
+[[maybe_unused]] auto Node::setFrequency(Frequency const frequency) -> void {
+  m_updatePeriod = convertFrequencyToPeriod(frequency);
+}
 
 auto Node::spinOnce() -> void {
-  Node::Time const currentTime = esp_timer_get_time();
-  Node::Time const timeDifference = currentTime - m_spinLastTime;
+  Time const currentTime = esp_timer_get_time();
+  Time const timeDifference = currentTime - m_spinLastTime;
   if (timeDifference < m_updatePeriod) {
     return;
   }
@@ -49,6 +43,13 @@ auto Node::spinOnce() -> void {
   m_spinLastTime = currentTime;
 
   process();
+}
+
+auto Node::convertFrequencyToPeriod(Frequency const frequency) -> Period {
+  auto const periodInSecond = 1 / frequency;
+  auto const periodInUS = static_cast<Period>(periodInSecond * MICROSECONDS_PER_SECOND);
+
+  return periodInUS;
 }
 
 } // namespace executor

@@ -32,11 +32,11 @@ public:
   friend class Executor;
 
 public:
-  using Period = std::int64_t;
   using Pointer = std::shared_ptr<Node>;
   using Frequency = float;
 
 private:
+  using Period = std::int64_t;
   using Time = std::int64_t;
 
 public:
@@ -59,6 +59,9 @@ private:
 private:
   /** Business data implementation */
   virtual auto process() -> void = 0;
+
+private:
+  auto convertFrequencyToPeriod(Frequency frequency) -> Period;
 
 private:
   Time m_spinLastTime{0};

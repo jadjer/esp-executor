@@ -43,7 +43,7 @@ private:
 public:
   [[maybe_unused]] auto addNode(Node::Pointer node) -> void;
   [[maybe_unused]] auto addNode(Node::Pointer node, Node::Frequency processFrequency) -> void;
-  [[maybe_unused]] auto removeNode(Node::Pointer const &node) -> void;
+  [[maybe_unused]] auto removeNode(Node::Pointer const& node) -> void;
 
 public:
   auto spin() -> void;
