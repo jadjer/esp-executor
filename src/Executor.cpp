@@ -33,7 +33,6 @@ auto const TAG = "Executor";
 auto const MICROSECONDS_PER_SECOND = 1000000;
 auto const WATCHDOG_TIMER_RESET_MICROSECONDS = 3 * MICROSECONDS_PER_SECOND;
 
-using Time = std::int64_t;
 using Result = esp_err_t;
 
 } // namespace
