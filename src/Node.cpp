@@ -26,6 +26,9 @@ auto const MICROSECONDS_PER_SECOND = 1000000;
 
 } // namespace
 
+Node::Node() noexcept : Node(DEFAULT_FREQUENCY_HZ) {
+}
+
 Node::Node(Node::Frequency const frequency) noexcept : m_updatePeriod{convertFrequencyToPeriod(frequency)} {
 }
 
